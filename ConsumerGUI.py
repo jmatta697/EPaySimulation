@@ -15,7 +15,7 @@ class UserWindow:
     def setup(self):
         self.window = tkinter.Tk()
         self.window.title("JPay")
-        self.window.geometry('200x450')
+        self.window.geometry('300x500')
 
         self.label1 = tkinter.Label(self.window, text="Welcome to JPay\n\nSelect a transaction type:",
                                     font=("Arial Bold", 12))
@@ -37,11 +37,9 @@ class UserWindow:
         self.selectRadButton2.place(x=40, y=100, width=100, height=25)
 
         # set up QR code image
-        self.QRImage = ImageTk.PhotoImage(Image.open("user_1.png"))
+        self.QRImage = ImageTk.PhotoImage(Image.open("QR_Code_Images/user_1.png"))
         QRPanel = tkinter.Label(self.window, image=self.QRImage)
         QRPanel.place(x=0, y=250, width=200, height=200)
-
-
 
     def run(self):
         self.window.mainloop()

@@ -20,18 +20,30 @@ def _send_receive_data(sock: socket.socket, customer_data: bytes) -> str:
         sock.sendall(customer_data)
 
         # ----- Data coming back -----
+        # data_segment = sock.recv(16)
+        # look for response by message length
+        # amount_received = 0
+        # server response string
+        # server_response = b''
+        # amount_expected = len(customer_data)
+        # keep receiving until entire expected message is received
         # look for response by message length
         amount_received = 0
         # server response string
         server_response = b''
         amount_expected = len(customer_data)
         # keep receiving until entire expected message is received
-        while amount_received < amount_expected:
-            data_segment = sock.recv(16)
+        while amount_received < amount_expected:   # the extra 27 bytes are for the server response msg
+            # print('POI tick')
+            data_segment = sock.recv(512)
             amount_received += len(data_segment)
             # build response string
-            server_response += data_segment
-            # print(sys.stderr, f'received {data_segment}')
+            if data_segment:
+                server_response += data_segment
+            else:
+                print('no more response data from server')
+                break
+
     finally:
         print(sys.stderr, '** closing socket **')
         sock.close()

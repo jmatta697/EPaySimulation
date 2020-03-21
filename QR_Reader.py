@@ -5,7 +5,7 @@ import simpleaudio as sa
 
 class QRReader:
     # (a video source of 0 defaults to the internal laptop web cam)
-    def __init__(self, video_source=0):
+    def __init__(self, video_source):
         # open video source
         self.cap = cv2.VideoCapture(video_source)
         # error check to see is video capture source opens successfully
@@ -28,7 +28,7 @@ class QRReader:
             decoded_objects = pyzbar.decode(frame)
 
             for obj in decoded_objects:
-                print(obj.data)
+                print(f'The QR Reader has read >>> {obj.data}')
                 self.QR_data_str = obj.data
 
             cv2.imshow("Frame", frame)
@@ -47,3 +47,4 @@ class QRReader:
         cv2.destroyAllWindows()
 
         return self.QR_data_str
+

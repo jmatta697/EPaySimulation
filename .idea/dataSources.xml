@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="cardholders" uuid="0d8741ab-ab85-43d3-99b9-67a572df61cf">
+    <data-source source="LOCAL" name="issuer_cardholders_data" uuid="7bd4aa12-40d7-4564-a14a-019ab945f366">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\Joe Matta\PycharmProjects\EPaySimulation\cardholders.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\Joe Matta\PycharmProjects\EPaySimulation\issuer_cardholders_data.db</jdbc-url>
       <libraries>
         <library>
           <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.25.1/license.txt</url>

@@ -4,7 +4,7 @@ import sqlite3
 from Cardholder import Cardholder
 
 # establish connection with the database
-conn = sqlite3.connect('issuer_cardholders_data.db')
+conn = sqlite3.connect('Issuer_Cardholders_Data.db')
 # define a 'cursor' for the database
 c = conn.cursor()
 
@@ -12,20 +12,20 @@ c = conn.cursor()
 c.execute("""CREATE TABLE cardholders (
             first text,
             last text,
-            card_number integer,
-            exp_month integer,
-            exp_year integer,
-            cvv integer,
+            card_number text,
+            exp_month text,
+            exp_year text,
+            cvv text,
             balance_amount float,
-            pin_number integer
+            pin_number text
             )""")
 
 # define some card holder objects
-cardholder_1 = Cardholder('Mary', 'Buckingham', 2345654349876543, 3, 2022, 123, 2345.67, 1234)
-cardholder_2 = Cardholder('Sam', 'Smith', 2345654509812346, 4, 2023, 678, 345.67, 5678)
-cardholder_3 = Cardholder('Bob', 'Bell', 5678654560980097, 3, 2022, 298, 765.67, 9012)
-cardholder_4 = Cardholder('Joe', 'Mathew', 3456500098675542, 10, 2021, 345, 100.00, 2345)
-cardholder_5 = Cardholder('Tony', 'Mathew', 3323000999876543, 2, 2021, 567, 200.50, 5678)
+cardholder_1 = Cardholder('Mary', 'Buckingham', '2345654349876543', '3', '2022', '123', 2345.67, '1234')
+cardholder_2 = Cardholder('Sam', 'Smith', '2345654509812346', '4', '2023', '678', 345.67, '5678')
+cardholder_3 = Cardholder('Bob', 'Bell', '5678654560980097', '3', '2022', '298', 765.67, '9012')
+cardholder_4 = Cardholder('Joe', 'Mathew', '3456500098675542', '10', '2021', '345', 100.00, '2345')
+cardholder_5 = Cardholder('Tony', 'Mathew', '3323000999876543', '2', '2021', '567', 200.50, '5678')
 
 card_holder_list = [cardholder_1, cardholder_2, cardholder_3, cardholder_4, cardholder_5]
 # insert all card holders into the card holder table

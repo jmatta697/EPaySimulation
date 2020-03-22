@@ -15,17 +15,12 @@ def _set_up_socket(ip, port) -> socket.socket:
 
 def _send_receive_data(sock: socket.socket, customer_data: bytes) -> str:
     try:
+        # ----- Data going out to Server -----
         print(sys.stderr, f'POI sending to issuer >>> {customer_data}')
         # send data into the socket (QR code string must be converted to a byte string)
         sock.sendall(customer_data)
 
-        # ----- Data coming back -----
-        # data_segment = sock.recv(16)
-        # look for response by message length
-        # amount_received = 0
-        # server response string
-        # server_response = b''
-        # amount_expected = len(customer_data)
+        # ----- Data coming back from Server -----
         # keep receiving until entire expected message is received
         # look for response by message length
         amount_received = 0
@@ -33,8 +28,7 @@ def _send_receive_data(sock: socket.socket, customer_data: bytes) -> str:
         server_response = b''
         amount_expected = len(customer_data)
         # keep receiving until entire expected message is received
-        while amount_received < amount_expected:   # the extra 27 bytes are for the server response msg
-            # print('POI tick')
+        while amount_received < amount_expected:
             data_segment = sock.recv(512)
             amount_received += len(data_segment)
             # build response string

@@ -62,10 +62,13 @@ class MerchantUserWindow:
         absolute_price_amount = self.price_text_entry.get()
         # check if refund is being issued - if so add '-' to price to make it negative
         if self.radioButtonVar.get() == 'refund':
-            absolute_price_amount = '-' + self.price_text_entry.get()
+            amount_sign = 'refund_d'
+        else:
+            amount_sign = 'charge_e'
         # add PIN entry and money amount entry to qr code data to make complete token
         complete_token = qr_data_str + '|'.encode() + self.pin_text_entry.get().encode() + '|'.encode() + \
-            absolute_price_amount.encode()
+            absolute_price_amount.encode() + '|'.encode() + amount_sign.encode()
+        print(complete_token)
         return complete_token
 
     def send_token_via_poi_client(self, token: bytes):

@@ -38,7 +38,7 @@ def _gcd(a, b):
 
 def _get_e(phi_n_value: int) -> int:
     # choose random number from 10 to phi_n_value//128
-    rand_e_iter_min = random.randrange(10, phi_n_value//128)
+    rand_e_iter_min = random.randrange(10, phi_n_value//32)
     for e_iter in range(rand_e_iter_min, phi_n_value):
         if _gcd(e_iter, phi_n_value) == 1:
             return e_iter
@@ -58,16 +58,16 @@ def _multiplicative_inverse(a, b):
         (x, lx) = ((lx - (q_val * x)), x)
         (y, ly) = ((ly - (q_val * y)), y)
     if lx < 0:
-        lx += ob  # If neg wrap modulo orignal b
+        lx += ob  # If neg wrap modulo original b
     if ly < 0:
-        ly += oa  # If neg wrap modulo orignal a
+        ly += oa  # If neg wrap modulo original a
     return lx
 
 
 def generate_random_keys() -> Dict[str, int]:
     key_dictionary = {}
     # generate prime list to choose from
-    prime_num_list = _generate_prime_num_list(50, 90)
+    prime_num_list = _generate_prime_num_list(160, 180)
     # random choose p and q
     p, q = _choose_two_prime_numbers(prime_num_list)
     # determine n (public key)
@@ -84,7 +84,7 @@ def generate_random_keys() -> Dict[str, int]:
     d = _multiplicative_inverse(e, phi_n)
     # add d (private key) to dictionary
     key_dictionary['d'] = d
-    print(f'p: {p}\nq: {q}\nn: {n}\nphi_n: {phi_n}\ne: {e}\nd: {d}')
+    print(f'\np: {p}\nq: {q}\nn: {n}\nphi_n: {phi_n}\ne: {e}\nd: {d}\n')
     return key_dictionary
 
 

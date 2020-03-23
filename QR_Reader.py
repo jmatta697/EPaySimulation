@@ -12,7 +12,7 @@ class QRReader:
         if not self.cap.isOpened():
             raise ValueError("Unable to open video source", video_source)
         # set video capture window size
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 160)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 120)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 120)
         # 'read complete' sound
         self.read_complete_sound_obj = sa.WaveObject.from_wave_file("Sounds/read_complete.wav")
@@ -24,27 +24,19 @@ class QRReader:
     def run_reader(self):
         while True:
             _, frame = self.cap.read()
-
             decoded_objects = pyzbar.decode(frame)
-
             for obj in decoded_objects:
                 print(f'The QR Reader has read >>> {obj.data}')
                 self.QR_data_str = obj.data
-
             cv2.imshow("Frame", frame)
-
             if self.QR_data_str != '':
                 play_obj = self.read_complete_sound_obj.play()
                 play_obj.wait_done()
                 break
-
             key = cv2.waitKey(1)
-
             if key == 113:  # 113 = 'q' on keyboard (for 'quit' to close the screen)
                 break
-
         self.cap.release()
         cv2.destroyAllWindows()
 
         return self.QR_data_str
-

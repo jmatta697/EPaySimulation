@@ -1,10 +1,11 @@
 # Author: Joe Matta
 # November 2018
 import random
+from typing import Dict
 
 
 # https://stackoverflow.com/questions/15285534/isprime-function-for-python-language
-def is_prime(test_num) -> bool:
+def _is_prime(test_num) -> bool:
     if test_num == 2 or test_num == 3:
         return True
     if test_num % 2 == 0 or test_num < 2:
@@ -15,127 +16,123 @@ def is_prime(test_num) -> bool:
     return True
 
 
-def generate_prime_num_list(min_range: int, max_range: int) -> [int]:
-    prime_numbers = [i for i in range(min_range, max_range) if is_prime(i)]
+def _generate_prime_num_list(min_range: int, max_range: int) -> [int]:
+    prime_numbers = [i for i in range(min_range, max_range) if _is_prime(i)]
     return prime_numbers
 
 
 # choose two prime numbers
-def choose_two_prime_numbers(prime_list: [int]) -> (int, int):
+def _choose_two_prime_numbers(prime_list: [int]) -> (int, int):
     random.shuffle(prime_list)
     first_prime = prime_list.pop()
     second_prime = prime_list.pop()
     return first_prime, second_prime
 
 
-# https://www.geeksforgeeks.org/rsa-algorithm-cryptography/
-def gcd(a, b):
+def _gcd(a, b):
     if b == 0:
         return a
     else:
-        return gcd(b, a % b)
+        return _gcd(b, a % b)
 
 
-def get_e(phi_n_value: int) -> int:
+def _get_e(phi_n_value: int) -> int:
     # choose random number from 10 to phi_n_value//128
     rand_e_iter_min = random.randrange(10, phi_n_value//128)
     for e_iter in range(rand_e_iter_min, phi_n_value):
-        if gcd(e_iter, phi_n_value) == 1:
+        if _gcd(e_iter, phi_n_value) == 1:
             return e_iter
 
 
-# generate prime list to choose from
-prime_num_list = generate_prime_num_list(50, 100)
-# random choose p and q
-p, q = choose_two_prime_numbers(prime_num_list)
-# p, q = 19, 71
-# determine n (public key)
-n = p*q
-# determine phi(n)
-phi_n = (p-1)*(q-1)
-# choose e (public key)
-e = get_e(phi_n)
-# compute unique number d (private key)
+# https://gist.github.com/JekaDeka/c9b0f5da16625e3c7bd1033356354579
+def _multiplicative_inverse(a, b):
+    x = 0
+    y = 1
+    lx = 1
+    ly = 0
+    oa = a  # Remember original a/b to remove
+    ob = b  # negative values from return results
+    while b != 0:
+        q_val = a // b
+        (a, b) = (b, a % b)
+        (x, lx) = ((lx - (q_val * x)), x)
+        (y, ly) = ((ly - (q_val * y)), y)
+    if lx < 0:
+        lx += ob  # If neg wrap modulo orignal b
+    if ly < 0:
+        ly += oa  # If neg wrap modulo orignal a
+    return lx
 
-print(f'p: {p}\nq: {q}\nn: {n}\nphi_n: {phi_n}\ne: {e}')
+
+def generate_random_keys() -> Dict[str, int]:
+    key_dictionary = {}
+    # generate prime list to choose from
+    prime_num_list = _generate_prime_num_list(50, 90)
+    # random choose p and q
+    p, q = _choose_two_prime_numbers(prime_num_list)
+    # determine n (public key)
+    n = p*q
+    # add n (public key) to dictionary
+    key_dictionary['n'] = n
+    # determine phi(n)
+    phi_n = (p-1)*(q-1)
+    # choose e (public key)
+    e = _get_e(phi_n)
+    # add e (public key) to dictionary
+    key_dictionary['e'] = e
+    # compute unique number d (private key)
+    d = _multiplicative_inverse(e, phi_n)
+    # add d (private key) to dictionary
+    key_dictionary['d'] = d
+    print(f'p: {p}\nq: {q}\nn: {n}\nphi_n: {phi_n}\ne: {e}\nd: {d}')
+    return key_dictionary
 
 
+def rsa_encrypt(plain_text: str, my_private_d: int, my_public_n: int, outside_e: int, outside_n: int) -> [int]:
+    cypher_str = []
+    for char in plain_text:
+        char_ascii_value = ord(char)
+        encrypted_char = (((char_ascii_value**my_private_d) % my_public_n) ** outside_e) % outside_n
+        cypher_str.append(encrypted_char)
+    return cypher_str
 
-# # letter codes
-# letter_codes = {10: 'A', 55: 'N',
-#                 20: 'B', 65: 'O',
-#                 30: 'C', 75: 'P',
-#                 40: 'D', 85: 'Q',
-#                 50: 'E', 95: 'R',
-#                 60: 'F', 12: 'S',
-#                 70: 'G', 22: 'T',
-#                 80: 'H', 32: 'U',
-#                 90: 'I', 42: 'V',
-#                 15: 'J', 52: 'W',
-#                 25: 'K', 62: 'X',
-#                 35: 'L', 72: 'Y',
-#                 45: 'M', 82: 'Z',
-#                 44: ' '}
-#
-# # e, n, and my d values
-# my_e = 47
-# my_n = 1349
-# my_d = 563
-#
-# amanda_e = 11
-# amanda_n = 869
-#
-# print("\nmy_e = 47\nmy_n = 1349\nmy_d = 563\n\namanda_e = 313\namanda_n = 1271\n")
-#
-# # my word: "magic sword"
-# word = [45, 10, 70, 90, 30, 44, 12, 52, 65, 95, 40]
-#
-# actual_word = ""
-# # decode my word using 'letter_codes'
-# for letter_code in word:
-#     actual_word += letter_codes[letter_code]
-# # print my word decoded - "magic sword"
-# print("My message: " + actual_word)
-#
-# # ------------------------ Encrypt --------------------------------
-# my_encrypted_word = []
-# for letter in word:
-#     letter_To_MyD = letter**my_d  # (coded letter)^(my_d)
-#
-#     letter_To_MyD_Mod_MyN = letter_To_MyD % my_n  # [(coded letter)^(my_d)] mod (my_n)
-#
-#     letter_To_MyD_Mod_MyN_ToAman_E = letter_To_MyD_Mod_MyN**amanda_e
-#
-#     letter_To_MyD_Mod_MyN_ToAman_E_mod_AmanN = letter_To_MyD_Mod_MyN_ToAman_E % amanda_n
-#
-#     my_encrypted_word.append(letter_To_MyD_Mod_MyN_ToAman_E_mod_AmanN)
-#
-# print("My encrypted message: [" + ', '.join(str(e) for e in my_encrypted_word) + "]")
-#
-# # -------------------------- Decrypt --------------------------------
-#
-# amanda_encrypted_word = [596, 731, 77, 779, 791, 1168, 913, 1015]
-# # print amanda's encrypted word
-# print("\nAndy's encrypted message: [" + ', '.join(str(e) for e in amanda_encrypted_word) + "]")
-#
-# amanda_decrypted_word = []
-#
-# for encrypted_letter in amanda_encrypted_word:
-#     # raise to my_d mod my_n
-#     intermediate_value = (encrypted_letter**my_d) % my_n
-#
-#     # intermediate value raised to amanda_e mod amanda_n
-#     decrypted_letter = (intermediate_value**amanda_e) % amanda_n
-#
-#     # add decrypted letter to decrypted word list
-#     amanda_decrypted_word.append(decrypted_letter)
-#
-# print("Andy's decrypted message: [" + ', '.join(str(e) for e in amanda_decrypted_word) + "]")
-#
-# # decode Amanda's decrypted message
-# actual_amanda_word = ""
-# for amanda_letter_code in amanda_decrypted_word:
-#     actual_amanda_word += letter_codes[amanda_letter_code]
-#
-# # print Amanda's decoded word
-# print("Andy's decoded message: " + actual_amanda_word)
+
+def rsa_decrypt(cypher_text: [int], my_private_d: int, my_public_n: int, outside_e: int, outside_n: int) -> [int]:
+    plain_text_ascii = []
+    for cypher_char in cypher_text:
+        ascii_value = (((cypher_char**my_private_d) % my_public_n)**outside_e) % outside_n
+        plain_text_ascii.append(ascii_value)
+    return plain_text_ascii
+
+
+def convert_ascii_to_string(ascii_list: [int]) -> str:
+    return ''.join(chr(ascii_value) for ascii_value in ascii_list)
+
+
+# ------ TEST CASE BELOW -------
+
+# my-client
+# p: 59
+# q: 71
+# n: 4189
+# phi_n: 4060
+# e: 31
+# d: 131
+
+# outside-server
+# p: 61
+# q: 89
+# n: 5429
+# phi_n: 5280
+# e: 29
+# d: 2549
+
+# client encrypts massage
+# encrypted_text = rsa_encrypt('Gi Joe', 131, 4189, 29, 5429)
+# print(encrypted_text)
+
+# server decrypts message
+# decrypted_text = rsa_decrypt(encrypted_text, 2549, 5429, 31, 4189)
+# print(decrypted_text)
+# decrypted_plain_text = convert_ascii_to_string(decrypted_text)
+# print(decrypted_plain_text)

@@ -26,15 +26,14 @@ class MerchantUserWindow:
                                     font=("Arial Bold", 12))
         self.label1.place(x=40, y=0)
 
-        self.price_label = tkinter.Label(self.window, text="Amount:",
-                                         font=("Arial Bold", 10))
+        self.price_label = tkinter.Label(self.window, text="Amount:", font=("Arial Bold", 10))
         self.price_label.place(x=50, y=153)
 
-        self.pin_label = tkinter.Label(self.window, text="Customer PIN:",
-                                       font=("Arial Bold", 10))
+        self.pin_label = tkinter.Label(self.window, text="Customer PIN:", font=("Arial Bold", 10))
         self.pin_label.place(x=13, y=205)
 
-        self.scan_button = tkinter.Button(self.window, text="Scan", command=self.run_qr_reader, bg="black", fg="white")
+        self.scan_button = tkinter.Button(self.window, text="Scan", command=self.initiate_qr_data_acquisition,
+                                          bg="black", fg="white")
         self.scan_button.place(x=90, y=280, width=120, height=25)
 
         self.price_text_entry = tkinter.Entry(self.window, width=12)
@@ -58,23 +57,35 @@ class MerchantUserWindow:
     def run(self):
         self.window.mainloop()
 
-    def run_qr_reader(self):
-        # set up QR Reader Object - Enter '0' as a parameter to use built-in computer web cam as reader
-        qr_reader_obj = QR_Reader.QRReader(0)
-        qr_code_return = qr_reader_obj.run_reader()
-        print(f'The Merchant App Received from QR Reader >>> {qr_code_return}')
+    def build_token(self, qr_data_str: bytes) -> bytes:
         # this variable will hold the money amount sent to the issuer
         absolute_price_amount = self.price_text_entry.get()
         # check if refund is being issued - if so add '-' to price to make it negative
         if self.radioButtonVar.get() == 'refund':
             absolute_price_amount = '-' + self.price_text_entry.get()
         # add PIN entry and money amount entry to qr code data to make complete token
-        complete_token = qr_code_return + '|'.encode() + self.pin_text_entry.get().encode() + '|'.encode() + \
+        complete_token = qr_data_str + '|'.encode() + self.pin_text_entry.get().encode() + '|'.encode() + \
             absolute_price_amount.encode()
+        return complete_token
+
+    def send_token_via_poi_client(self, token: bytes):
         # send customer EMV data to issuer server
-        self.issuer_response = Merchant_Client_POI.initiate_issuer_authorization(complete_token)
+        self.issuer_response = Merchant_Client_POI.initiate_issuer_authorization(token)
         # DEBUG
         print(f'issuer server returned >>> {self.issuer_response}')
+
+    def initiate_qr_data_acquisition(self):
+        qr_code_data = run_qr_reader()
+        token = self.build_token(qr_code_data)
+        self.send_token_via_poi_client(token)
+
+
+def run_qr_reader() -> bytes:
+    # set up QR Reader Object - Enter '0' as a parameter to use built-in computer web cam as reader
+    qr_reader_obj = QR_Reader.QRReader(0)
+    qr_code_return = qr_reader_obj.run_reader()
+    print(f'The Merchant App Received from QR Reader >>> {qr_code_return}')
+    return qr_code_return
 
 
 def main():

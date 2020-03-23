@@ -7,6 +7,7 @@ from typing import Any
 
 
 def run_server():
+    key_exchange_mode = True
     # setup socket and listen
     sock = _create_socket('localhost', 22567)
     while True:
@@ -19,37 +20,46 @@ def run_server():
                 # print('server tick')
                 # receive the data in 512 chunks
                 merchant_token = connection.recv(512)
+                if merchant_token == b'' and not key_exchange_mode:
+                    continue
                 print(f'server received merchant token from POI >>> {merchant_token}')
-
-                # assemble token in to string list with each element representing a customer information attribute
+                # assemble token in to string list with each element representing an attribute
                 token_element_list = _itemize_poi_token(merchant_token)
                 # if there is still data being received
                 if merchant_token:
-                    # check with database...
-                    db_conn, c = _establish_database_connection('issuer_cardholders_data.db')
-                    # Query database to see if the merchant data matches any record in the database
-                    return_msg, db_record = _check_database_for_record(c, merchant_token, token_element_list)
-                    # DEBUG print
-                    print(return_msg, db_record)
-                    # a database record is found.. check PIN
-                    if db_record:
-                        # now check PIN - PIN is token_element_list[6]
-                        return_msg = _check_pin(token_element_list[6], db_record[7], return_msg)
-                        # now process payment - if possible and valid PIN
-                        if return_msg[16:27] == 'VALID___PIN':
-                            print('we are processing payment...')
-                            # check if there are sufficient funds in the customers account
-                            if _sufficient_funds(token_element_list[7], db_record[6]):
-                                print('there is sufficient funds')
-                                return_msg = _update_message_transaction_complete(return_msg)
-                                _process_payment(c, db_record, token_element_list)
-                            else:
-                                print('not enough funds!')
-                                return_msg = _update_message_insufficient_funds(return_msg)
-
-                    connection.sendall(return_msg.encode())
-                    db_conn.commit()
-                    db_conn.close()
+                    # check if the transmission is a public key exchange
+                    if token_element_list[0] == 'RSA_public_keys':
+                        print(token_element_list)
+                        return_string = f'server says that it received the following public keys ' \
+                                        f'{token_element_list[1]}, {token_element_list[2]}'
+                        connection.sendall(return_string.encode())
+                        key_exchange_mode = False
+                    else:
+                        # check with database...
+                        db_conn, c = _establish_database_connection('issuer_cardholders_data.db')
+                        # Query database to see if the merchant data matches any record in the database
+                        return_msg, db_record = _check_database_for_record(c, merchant_token, token_element_list)
+                        # DEBUG print
+                        print(return_msg, db_record)
+                        # a database record is found.. check PIN
+                        if db_record:
+                            # now check PIN - PIN is token_element_list[6]
+                            return_msg = _check_pin(token_element_list[6], db_record[7], return_msg)
+                            # now process payment - if possible and valid PIN
+                            if return_msg[16:27] == 'VALID___PIN':
+                                print('we are processing payment...')
+                                # check if there are sufficient funds in the customers account
+                                if _sufficient_funds(token_element_list[7], db_record[6]):
+                                    print('there is sufficient funds')
+                                    return_msg = _update_message_transaction_complete(return_msg)
+                                    _process_payment(c, db_record, token_element_list)
+                                else:
+                                    print('not enough funds!')
+                                    return_msg = _update_message_insufficient_funds(return_msg)
+                        connection.sendall(return_msg.encode())
+                        db_conn.commit()
+                        db_conn.close()
+                        key_exchange_mode = True
                 # when there is no more data to receive (reached the end of client data)
                 else:
                     # print(f'reached end of data from {client_address}')
@@ -178,8 +188,6 @@ def _update_message_transaction_complete(msg: str) -> str:
     ret_msg = msg[:28] + 'TRANS_CPLT|' + msg[39:]
     print(ret_msg)
     return ret_msg
-
-
 
 
 def main():
